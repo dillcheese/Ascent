@@ -5,15 +5,19 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    private float moveSpeed = 5f;
-    [SerializeField] private float jumpForce = 12f;
+    private static float moveSpeed = 5f;
+    private float jumpForce = 13f;
+    [SerializeField] private float playerMoveSpeed = moveSpeed;
 
-    private float horizontal;
-    private bool isFacingRight = true;
+    [SerializeField] private float horizontal;
+    [SerializeField] private bool isFacingRight = true;
 
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
+
+    [SerializeField] private bool isOnSlipperySurface = false;
+    [SerializeField] private bool isOnSuperSlipperySurface = false;
 
     // Start is called before the first frame update
     private void Start()
@@ -47,12 +51,25 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        rb.velocity = new Vector2(horizontal * moveSpeed, rb.velocity.y);
+        if (isOnSlipperySurface)
+        {
+            rb.AddForce(new Vector2(horizontal * playerMoveSpeed*1.01f, rb.velocity.y));
+
+        }
+        else if (isOnSuperSlipperySurface)
+        {
+            rb.AddForce(new Vector2(horizontal * playerMoveSpeed * 0.105f, 0), ForceMode2D.Impulse);
+
+        }
+        else
+        {
+            rb.velocity = new Vector2(horizontal * playerMoveSpeed, rb.velocity.y);
+        }
     }
 
     private bool IsGrounded()
     {
-        return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+        return Physics2D.OverlapCircle(groundCheck.position, 0.35f, groundLayer);
     }
 
     private void Flip()
@@ -60,9 +77,12 @@ public class PlayerMovement : MonoBehaviour
         if (isFacingRight && horizontal < 0f || !isFacingRight && horizontal > 0f)
         {
             isFacingRight = !isFacingRight;
-            Vector3 localScale = transform.localScale;
-            localScale.x *= -1f;
-            transform.localScale = localScale;
+
+            // Rotate the player object around the y-axis
+            transform.Rotate(0f, 180f, 0f);
+            //Vector3 localScale = transform.localScale;
+            //localScale.x *= -1f;
+            //transform.localScale = localScale;
         }
     }
 
@@ -71,6 +91,41 @@ public class PlayerMovement : MonoBehaviour
         return isFacingRight;
     }
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Snow")
+        {
+            // Slow down player
+            playerMoveSpeed = moveSpeed / 2;
+        }
+        else if (collision.gameObject.tag == "Ice")
+        {
+            // Make player slippery
+            isOnSlipperySurface = true;
+        }
+        else if (collision.gameObject.tag == "SuperIce")
+        {
+            // Make player slippery
+            isOnSuperSlipperySurface = true;
+        }
+    }
 
-
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Snow")
+        {
+            // Reset player speed
+            playerMoveSpeed = moveSpeed;
+        }
+        else if (collision.gameObject.tag == "Ice")
+        {
+            // Make player slippery
+            isOnSlipperySurface = false;
+        }
+        else if (collision.gameObject.tag == "SuperIce")
+        {
+            // Make player slippery
+            isOnSuperSlipperySurface = false;
+        }
+    }
 }

@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Resizable
+  - Ice
+  - Snow
+  - SuperIce
   layers:
   - Default
   - TransparentFX
