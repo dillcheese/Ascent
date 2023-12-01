@@ -13,8 +13,8 @@ public class FinalEnd : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player") // Assuming your player object has the tag "Player"
         {
-            StartCoroutine(FadeToWhiteAndLoadScene());
             Ended = true;
+            StartCoroutine(FadeToWhiteAndLoadScene());
         }
     }
 
